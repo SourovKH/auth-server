@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	constants "lem-be/auth/constants"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -12,6 +14,7 @@ import (
 type JWTClaims struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
+	Role   constants.Role `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -25,7 +28,7 @@ func GetJWTSecret() (string, error) {
 }
 
 // GenerateAccessToken generates a short-lived access token (15 minutes)
-func GenerateAccessToken(userID, email string) (string, error) {
+func GenerateAccessToken(userID, email string, role constants.Role) (string, error) {
 	secret, err := GetJWTSecret()
 	if err != nil {
 		return "", err
@@ -34,6 +37,7 @@ func GenerateAccessToken(userID, email string) (string, error) {
 	claims := JWTClaims{
 		UserID: userID,
 		Email:  email,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

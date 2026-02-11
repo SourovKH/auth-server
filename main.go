@@ -1,13 +1,22 @@
 package main
 
 import (
-	"lem-be/database"
-	"lem-be/router"
 	"log"
 	"os"
+
+	auth_services "lem-be/auth/services"
+	"lem-be/database"
+	"lem-be/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	// Initialize MongoDB connection
 	if err := database.Init(); err != nil {
 		log.Fatal("Failed to initialize MongoDB:", err)
@@ -17,6 +26,13 @@ func main() {
 			log.Printf("Error disconnecting from MongoDB: %v", err)
 		}
 	}()
+
+	// Bootstrap superuser
+	log.Println("Bootstrapping superuser...")	
+	if err := auth_services.InitSuperuser(database.GetDB()); err != nil {
+		log.Printf("Error bootstrapping superuser: %v", err)
+	}
+	log.Println("Superuser bootstrapped successfully")
 
 	// Initialize Gin router
 	r := router.Setup()

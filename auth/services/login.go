@@ -6,7 +6,6 @@ import (
 	"time"
 
 	auth_models "lem-be/auth/models"
-	models "lem-be/auth/models"
 	auth_utils "lem-be/auth/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,7 +19,7 @@ var (
 )
 
 type LoginService interface {
-	Login(ctx context.Context, req models.LoginRequest) (models.LoginResponse, error)
+	Login(ctx context.Context, req auth_models.LoginRequest) (auth_models.LoginResponse, error)
 }
 
 type LoginServiceImpl struct {
@@ -31,7 +30,7 @@ func NewLoginService(db *mongo.Database) LoginService {
 	return &LoginServiceImpl{db: db}
 }
 
-func (s *LoginServiceImpl) Login(ctx context.Context, req models.LoginRequest) (models.LoginResponse, error) {
+func (s *LoginServiceImpl) Login(ctx context.Context, req auth_models.LoginRequest) (auth_models.LoginResponse, error) {
 	// Get users collection
 	usersCollection := s.db.Collection("users")
 
@@ -40,26 +39,26 @@ func (s *LoginServiceImpl) Login(ctx context.Context, req models.LoginRequest) (
 	err := usersCollection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return models.LoginResponse{}, ErrUserNotFound
+			return auth_models.LoginResponse{}, ErrUserNotFound
 		}
-		return models.LoginResponse{}, err
+		return auth_models.LoginResponse{}, err
 	}
 
 	// Verify password
 	if !auth_utils.ComparePasswords(user.Password, req.Password) {
-		return models.LoginResponse{}, ErrInvalidPassword
+		return auth_models.LoginResponse{}, ErrInvalidPassword
 	}
 
 	// Generate access token
-	accessToken, err := auth_utils.GenerateAccessToken(user.ID.Hex(), user.Email)
+	accessToken, err := auth_utils.GenerateAccessToken(user.ID.Hex(), user.Email, user.Role)
 	if err != nil {
-		return models.LoginResponse{}, ErrTokenGeneration
+		return auth_models.LoginResponse{}, ErrTokenGeneration
 	}
 
 	// Generate refresh token
 	refreshToken, err := auth_utils.GenerateRefreshToken(user.ID.Hex())
 	if err != nil {
-		return models.LoginResponse{}, ErrTokenGeneration
+		return auth_models.LoginResponse{}, ErrTokenGeneration
 	}
 
 	// Update user's last login time (optional)
@@ -69,7 +68,7 @@ func (s *LoginServiceImpl) Login(ctx context.Context, req models.LoginRequest) (
 		bson.M{"$set": bson.M{"updated_at": time.Now()}},
 	)
 
-	return models.LoginResponse{
+	return auth_models.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
