@@ -1,4 +1,4 @@
-package auth_models
+package models
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required"`

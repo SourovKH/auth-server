@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"lem-be/database"
+	"lem-be/handlers"
+	"lem-be/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,14 +29,14 @@ func Setup() *gin.Engine {
 	})
 
 	// Initialize services and handlers
-	loginService := auth_services.NewLoginService(database.GetDB())
-	loginHandler := auth.NewLoginHandler(loginService)
+	loginService := services.NewLoginService(database.GetDB())
+	loginHandler := handlers.NewLoginHandler(loginService)
 
-	googleService := auth_services.NewGoogleService(*database.GetDB())
-	googleHandler := auth.NewGoogleHandler(googleService)
+	googleService := services.NewGoogleService(*database.GetDB())
+	googleHandler := handlers.NewGoogleHandler(googleService)
 
-	passwordResetService := auth_services.NewPasswordResetService(*database.GetDB())
-	passwordResetHandler := auth.NewPasswordResetHandler(passwordResetService)
+	passwordResetService := services.NewPasswordResetService(*database.GetDB())
+	passwordResetHandler := handlers.NewPasswordResetHandler(passwordResetService)
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
