@@ -5,6 +5,7 @@ import (
 	"os"
 
 	auth_services "lem-be/auth/services"
+	auth_utils "lem-be/auth/utils"
 	"lem-be/database"
 	"lem-be/router"
 
@@ -33,6 +34,9 @@ func main() {
 		log.Printf("Error bootstrapping superuser: %v", err)
 	}
 	log.Println("Superuser bootstrapped successfully")
+
+	// Initialize OAuth2 config
+	auth_utils.InitOAuthConfig()
 
 	// Initialize Gin router
 	r := router.Setup()

@@ -32,6 +32,12 @@ func Setup() *gin.Engine {
 	loginService := auth_services.NewLoginService(database.GetDB())
 	loginHandler := auth.NewLoginHandler(loginService)
 
+	googleService := auth_services.NewGoogleService(*database.GetDB())
+	googleHandler := auth.NewGoogleHandler(googleService)
+
+	passwordResetService := auth_services.NewPasswordResetService(*database.GetDB())
+	passwordResetHandler := auth.NewPasswordResetHandler(passwordResetService)
+
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
@@ -43,6 +49,18 @@ func Setup() *gin.Engine {
 		})
 
 		v1.POST("/login", loginHandler.HandleLogin)
+
+		// OAuth2 routes
+		authGroup := v1.Group("/auth")
+		{
+			authGroup.GET("/google/login", googleHandler.HandleGoogleLogin)
+			authGroup.GET("/google/callback", googleHandler.HandleGoogleCallback)
+
+			// Password reset routes
+			authGroup.POST("/forgot-password", passwordResetHandler.HandleForgotPassword)
+			authGroup.POST("/verify-otp", passwordResetHandler.HandleVerifyOTP)
+			authGroup.POST("/reset-password", passwordResetHandler.HandleResetPassword)
+		}
 	}
 
 	return router
