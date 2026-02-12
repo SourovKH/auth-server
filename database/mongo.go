@@ -48,7 +48,7 @@ func Init() error {
 	// Get database name from environment or use default
 	dbName := os.Getenv("DB_NAME")
 	if dbName == "" {
-		dbName = "lem_db"
+		dbName = "auth"
 	}
 	Database = client.Database(dbName)
 
